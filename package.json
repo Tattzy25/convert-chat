@@ -10,6 +10,7 @@
 	},
 	"dependencies": {
 		"@ai-sdk/devtools": "^0.0.4",
+		"@ai-sdk/openai": "^3.0.7",
 		"@ai-sdk/react": "^3.0.29",
 		"@radix-ui/react-collapsible": "^1.1.12",
 		"@radix-ui/react-dialog": "^1.1.15",
@@ -29,6 +30,7 @@
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
 		"embla-carousel-react": "^8.6.0",
+		"groq-sdk": "^0.37.0",
 		"latest": "^0.2.0",
 		"lucide-react": "^0.562.0",
 		"motion": "^12.25.0",

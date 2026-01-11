@@ -20,7 +20,7 @@ import {
   XIcon,
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
-import { createContext, memo, useContext, useEffect, useState } from "react";
+import { createContext, memo, useContext, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -162,14 +162,14 @@ export const MessageBranch = ({
     handleBranchChange(newBranch);
   };
 
-  const contextValue: MessageBranchContextType = {
+  const contextValue = useMemo<MessageBranchContextType>(() => ({
     currentBranch,
     totalBranches: branches.length,
     goToPrevious,
     goToNext,
     branches,
     setBranches,
-  };
+  }), [currentBranch, branches.length, goToPrevious, goToNext, branches, setBranches]);
 
   return (
     <MessageBranchContext.Provider value={contextValue}>
@@ -211,7 +211,7 @@ export const MessageBranchContent = ({
   ));
 };
 
-export type MessageBranchSelectorProps = HTMLAttributes<HTMLDivElement> & {
+export type MessageBranchSelectorProps = HTMLAttributes<HTMLFieldSetElement> & {
   from: UIMessage["role"];
 };
 

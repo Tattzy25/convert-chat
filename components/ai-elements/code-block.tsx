@@ -9,6 +9,7 @@ import {
   type HTMLAttributes,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -98,8 +99,10 @@ export const CodeBlock = ({
     };
   }, [code, language, showLineNumbers]);
 
+  const contextValue = useMemo(() => ({ code }), [code]);
+
   return (
-    <CodeBlockContext.Provider value={{ code }}>
+    <CodeBlockContext.Provider value={contextValue}>
       <div
         className={cn(
           "group relative w-full overflow-hidden rounded-md border bg-background text-foreground",
@@ -147,7 +150,7 @@ export const CodeBlockCopyButton = ({
   const { code } = useContext(CodeBlockContext);
 
   const copyToClipboard = async () => {
-    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
+    if (typeof globalThis === "undefined" || !globalThis.navigator?.clipboard?.writeText) {
       onError?.(new Error("Clipboard API not available"));
       return;
     }

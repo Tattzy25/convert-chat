@@ -9,6 +9,7 @@ import {
   createContext,
   type ReactNode,
   useContext,
+  useMemo,
 } from "react";
 
 type ToolUIPartApproval =
@@ -20,16 +21,6 @@ type ToolUIPartApproval =
   | {
       id: string;
       approved: boolean;
-      reason?: string;
-    }
-  | {
-      id: string;
-      approved: true;
-      reason?: string;
-    }
-  | {
-      id: string;
-      approved: true;
       reason?: string;
     }
   | {
@@ -73,8 +64,10 @@ export const Confirmation = ({
     return null;
   }
 
+  const contextValue = useMemo(() => ({ approval, state }), [approval, state]);
+
   return (
-    <ConfirmationContext.Provider value={{ approval, state }}>
+    <ConfirmationContext.Provider value={contextValue}>
       <Alert className={cn("flex flex-col gap-2", className)} {...props} />
     </ConfirmationContext.Provider>
   );

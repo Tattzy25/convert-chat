@@ -1129,26 +1129,26 @@ export const PromptInputSpeechButton = ({
 
   useEffect(() => {
     if (
-      typeof window !== "undefined" &&
-      ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
+      typeof globalThis !== "undefined" &&
+      ("SpeechRecognition" in globalThis || "webkitSpeechRecognition" in globalThis)
     ) {
       const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+        (globalThis as any).SpeechRecognition || (globalThis as any).webkitSpeechRecognition;
       const speechRecognition = new SpeechRecognition();
 
       speechRecognition.continuous = true;
       speechRecognition.interimResults = true;
       speechRecognition.lang = "en-US";
 
-      speechRecognition.onstart = () => {
+      speechRecognition.onstart = (event: Event) => {
         setIsListening(true);
       };
 
-      speechRecognition.onend = () => {
+      speechRecognition.onend = (event: Event) => {
         setIsListening(false);
       };
 
-      speechRecognition.onresult = (event) => {
+      speechRecognition.onresult = (event: SpeechRecognitionEvent) => {
         let finalTranscript = "";
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
