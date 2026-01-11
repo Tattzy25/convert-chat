@@ -1,6 +1,7 @@
 import { streamText, UIMessage, convertToModelMessages } from 'ai';
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+import { tools } from '@/lib/tools';
+// Allow streaming responses up to 5 minutes for longer conversations
+export const maxDuration = 300;
 export async function POST(req: Request) {
   const {
     messages,
@@ -14,12 +15,13 @@ export async function POST(req: Request) {
   const result = streamText({
     model: webSearch ? 'perplexity/sonar' : model,
     messages: await convertToModelMessages(messages),
+    tools,
     system:
-      'You are a helpful assistant that can answer questions and help with tasks',
+      'You are a helpful assistant that can answer questions and help with tasks. When you use tools, always provide a clear, natural language response to the user based on the tool results. Do not just call tools without explaining the results.',
   });
   // send sources and reasoning back to the client
   return result.toUIMessageStreamResponse({
     sendSources: true,
-    sendReasoning: true,
+   sendReasoning: true,
   });
 }

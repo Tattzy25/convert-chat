@@ -48,18 +48,21 @@ import {
   ReasoningTrigger,
 } from '@/components/ai-elements/reasoning';
 import {
-  ChainOfThought,
-  ChainOfThoughtContent,
-  ChainOfThoughtHeader,
-  ChainOfThoughtStep,
-} from '@/components/ai-elements/chain-of-thought';
+  Confirmation,
+  ConfirmationTitle,
+  ConfirmationRequest,
+  ConfirmationAccepted,
+  ConfirmationRejected,
+  ConfirmationActions,
+  ConfirmationAction,
+} from '@/components/ai-elements/confirmation';
 import {
   Tool,
   ToolContent,
   ToolHeader,
   ToolInput,
   ToolOutput,
-} from '@/components/ai-elements/tool';
+} from '@/lib/tool';
 import { Loader } from '@/components/ai-elements/loader';
 const models = [
   {
@@ -75,7 +78,11 @@ const ChatBot = () => {
   const [input, setInput] = useState('');
   const [model, setModel] = useState<string>(models[0].value);
   const [webSearch, setWebSearch] = useState(false);
-  const { messages, sendMessage, status, regenerate } = useChat();
+  const { messages, sendMessage, status, regenerate, error } = useChat({
+    onError: (error) => {
+      console.error('Chat error:', error);
+    },
+  });
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
     const hasAttachments = Boolean(message.files?.length);
@@ -83,9 +90,9 @@ const ChatBot = () => {
       return;
     }
     sendMessage(
-      { 
+      {
         text: message.text || 'Sent with attachments',
-        files: message.files 
+        files: message.files
       },
       {
         body: {
@@ -163,31 +170,33 @@ const ChatBot = () => {
                         <ReasoningContent>{part.text}</ReasoningContent>
                       </Reasoning>
                     );
-                  } else if (part.type === 'chain-of-thought') {
-                    return (
-                      <ChainOfThought key={`${message.id}-${i}`}>
-                        <ChainOfThoughtHeader />
-                        <ChainOfThoughtContent>
-                          <ChainOfThoughtStep label="Chain of Thought">
-                            {/* @ts-expect-error part.text */}
-                            {part.text}
-                          </ChainOfThoughtStep>
-                        </ChainOfThoughtContent>
-                      </ChainOfThought>
-                    );
                   } else if (part.type.startsWith('tool-')) {
-                    // @ts-expect-error tool part properties
+                    const toolPart = part as any; // Cast to access tool properties
                     return (
-                      <Tool key={`${message.id}-${i}`} defaultOpen={part.state === 'output-available' || part.state === 'output-error'}>
-                        {/* @ts-expect-error */}
-                        <ToolHeader type={part.type} state={part.state} />
-                        <ToolContent>
-                          {/* @ts-expect-error */}
-                          <ToolInput input={part.input} />
-                          {/* @ts-expect-error */}
-                          <ToolOutput output={part.output} errorText={part.errorText} />
-                        </ToolContent>
-                      </Tool>
+                      <div key={`${message.id}-${i}`}>
+                        {toolPart.approval && (
+                          <Confirmation approval={toolPart.approval} state={toolPart.state}>
+                            <ConfirmationTitle>
+                              Tool requires approval: {part.type.split('-').slice(1).join('-')}
+                            </ConfirmationTitle>
+                            <ConfirmationRequest>
+                              <ConfirmationActions>
+                                <ConfirmationAction>Approve</ConfirmationAction>
+                                <ConfirmationAction variant="destructive">Reject</ConfirmationAction>
+                              </ConfirmationActions>
+                            </ConfirmationRequest>
+                            <ConfirmationAccepted>Tool approved and executed.</ConfirmationAccepted>
+                            <ConfirmationRejected>Tool rejected.</ConfirmationRejected>
+                          </Confirmation>
+                        )}
+                        <Tool defaultOpen={toolPart.state === 'output-available' || toolPart.state === 'output-error'}>
+                          <ToolHeader type={toolPart.type} state={toolPart.state} />
+                          <ToolContent>
+                            <ToolInput input={toolPart.input} />
+                            <ToolOutput output={toolPart.output} errorText={toolPart.errorText} />
+                          </ToolContent>
+                        </Tool>
+                      </div>
                     );
                   } else {
                     return null;
@@ -196,6 +205,12 @@ const ChatBot = () => {
               </div>
             ))}
             {status === 'submitted' && <Loader />}
+            {error && (
+              <div className="p-4 bg-destructive/10 text-destructive rounded-md">
+                <p className="font-medium">Chat Error</p>
+                <p className="text-sm">{error.message || 'An error occurred during the conversation.'}</p>
+              </div>
+            )}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
